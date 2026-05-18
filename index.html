@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catálogo de Jogos</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Cabeçalho -->
+  <header class="site-header">
+    <div class="header-inner">
+      <h1>🎮 Catálogo de Jogos</h1>
+      <div class="header-actions">
+        <button id="toggleTheme" class="btn-icon" aria-label="Alternar tema">🌙</button>
+        <button id="btnExportar" class="btn-secondary">⬇ Exportar JSON</button>
+        <label class="btn-secondary" for="btnImportar" style="cursor:pointer">⬆ Importar JSON</label>
+        <input type="file" id="btnImportar" accept=".json" style="display:none">
+        <button id="btnAbrirForm" class="btn-primary">+ Adicionar Jogo</button>
+        <button id="btnAtalhos" class="btn-icon" aria-label="Atalhos de teclado" title="Atalhos (?)">⌨️</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Painel de atalhos -->
+  <div id="painelAtalhos" class="atalhos-painel hidden" role="dialog" aria-label="Atalhos de teclado">
+    <div class="atalhos-inner">
+      <div class="atalhos-header">
+        <span>Atalhos de teclado</span>
+        <button id="btnFecharAtalhos" class="btn-icon" aria-label="Fechar">✕</button>
+      </div>
+      <div class="atalhos-lista">
+        <div class="atalho-item"><kbd>N</kbd><span>Novo jogo</span></div>
+        <div class="atalho-item"><kbd>F</kbd><span>Focar na busca</span></div>
+        <div class="atalho-item"><kbd>G</kbd><span>Alternar tabela / grade</span></div>
+        <div class="atalho-item"><kbd>E</kbd><span>Ir para Estatísticas</span></div>
+        <div class="atalho-item"><kbd>C</kbd><span>Ir para Catálogo</span></div>
+        <div class="atalho-item"><kbd>Esc</kbd><span>Fechar modal</span></div>
+        <div class="atalho-item"><kbd>?</kbd><span>Mostrar esta ajuda</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navegação por abas -->
+  <nav class="abas-nav" aria-label="Seções do catálogo">
+    <div class="abas-inner">
+      <button class="aba active" data-aba="catalogo">🎮 Catálogo</button>
+      <button class="aba" data-aba="estatisticas">📊 Estatísticas</button>
+    </div>
+  </nav>
+
+  <!-- ===== SEÇÃO: CATÁLOGO ===== -->
+  <div id="secaoCatalogo">
+
+  <!-- Contadores -->
+  <div class="stats-bar">
+    <span id="contadorTopo">0 jogos</span>
+    <span class="sep">·</span>
+    <span id="contadorPlataformasTopo" class="muted"></span>
+  </div>
+
+  <!-- Cards de resumo -->
+  <section class="resumo-container" aria-label="Resumo do catálogo">
+    <div class="resumo-group">
+      <p class="resumo-group-title">Status de Jogo</p>
+      <div class="resumo-cards">
+        <div class="resumo-card jogando">🎮 Jogando<span id="cardJogando">0</span></div>
+        <div class="resumo-card finalizado">✅ Finalizados<span id="cardFinalizados">0</span></div>
+        <div class="resumo-card jogado">🕹️ Jogados<span id="cardJogados">0</span></div>
+        <div class="resumo-card nao-comecado">⏳ Não comecei<span id="cardNaoComecados">0</span></div>
+      </div>
+    </div>
+    <div class="resumo-group">
+      <p class="resumo-group-title">Status de Platina</p>
+      <div class="resumo-cards">
+        <div class="resumo-card platinado">🏆 Platinados<span id="cardPlatinados">0</span></div>
+        <div class="resumo-card andamento">⚙️ Em andamento<span id="cardAndamento">0</span></div>
+        <div class="resumo-card implatinavel">❌ Implatináveis<span id="cardImplatinaveis">0</span></div>
+        <div class="resumo-card platina-nao-comecada">⏳ Não comecei<span id="cardPlatinaNaoComecada">0</span></div>
+      </div>
+    </div>
+    <div class="resumo-group">
+      <p class="resumo-group-title">Extras</p>
+      <div class="resumo-cards">
+        <div class="resumo-card platinavel">✅ Platinável<span id="cardPlatinavel">0</span></div>
+        <div class="resumo-card nao-platinavel">❌ Não Platinável<span id="cardNaoPlatinavel">0</span></div>
+        <div class="resumo-card dlc-sim">📦 Com DLC<span id="cardComDLC">0</span></div>
+        <div class="resumo-card manual-sim-card">📖 Com Manual<span id="cardComManual">0</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Card de avaliação média -->
+  <section class="media-section" id="mediaSection" aria-label="Avaliação média">
+    <div class="media-geral" id="mediaGeral">
+      <span class="media-label">Avaliação média geral</span>
+      <div class="media-stars" id="mediaStarsGeral"></div>
+      <span class="media-numero" id="mediaNumeroGeral">—</span>
+    </div>
+    <div class="media-plataformas" id="mediaPlataformas"></div>
+  </section>
+
+  <!-- Filtros -->
+  <div class="filtros-bar">
+    <div class="search-container">
+      <span class="search-icon">🔍</span>
+      <input type="text" id="campoBusca" placeholder="Buscar jogo ou plataforma…" aria-label="Buscar">
+    </div>
+    <div class="chips" id="filtroStatus" aria-label="Filtrar por status">
+      <button class="chip active" data-valor="">Todos</button>
+      <button class="chip" data-valor="jogando">Jogando</button>
+      <button class="chip" data-valor="finalizado">Finalizado</button>
+      <button class="chip" data-valor="jogado">Jogado</button>
+      <button class="chip" data-valor="nao_comecado">Não comecei</button>
+    </div>
+    <div class="chips" id="filtroPlatina" aria-label="Filtrar por platina">
+      <button class="chip active" data-valor="">Platina: Todos</button>
+      <button class="chip" data-valor="platinado">Platinado</button>
+      <button class="chip" data-valor="andamento">Em andamento</button>
+      <button class="chip" data-valor="implatinavel">Implatinável</button>
+    </div>
+    <select id="filtroPlatforma" class="select-filtro" aria-label="Filtrar por plataforma">
+      <option value="">Todas as plataformas</option>
+    </select>
+    <div class="view-toggle">
+      <button id="btnTabela" class="btn-view active" title="Visualização em tabela">☰</button>
+      <button id="btnGrid" class="btn-view" title="Visualização em grade">⊞</button>
+    </div>
+  </div>
+
+  <!-- Tabela -->
+  <div class="table-wrapper" id="viewTabela">
+    <table id="listaJogos">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th data-col="plataforma" class="sortable">📦 Plataforma <span class="sort-icon">↕</span></th>
+          <th data-col="nome" class="sortable">🎮 Jogo <span class="sort-icon">↕</span></th>
+          <th data-col="avaliacao" class="sortable">⭐ Avaliação <span class="sort-icon">↕</span></th>
+          <th data-col="statusJogo" class="sortable">🎮 Status Jogo <span class="sort-icon">↕</span></th>
+          <th>🏆 Platinável?</th>
+          <th data-col="statusPlatina" class="sortable">🏆 Status Platina <span class="sort-icon">↕</span></th>
+          <th>❌ Motivo</th>
+          <th data-col="progressoPlatina" class="sortable">📈 Progresso <span class="sort-icon">↕</span></th>
+          <th>📦 DLC?</th>
+          <th>📖 Manual?</th>
+          <th>⚙️ Ações</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+      <tfoot>
+        <tr><td colspan="12" id="contadorRodape">Total: 0 jogos</td></tr>
+        <tr><td colspan="12" id="contadorPlataformasRodape" class="muted"></td></tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- Visualização em Grade -->
+  <div id="viewGrid" class="grid-container hidden"></div>
+
+  </div><!-- fim #secaoCatalogo -->
+
+  <!-- ===== SEÇÃO: ESTATÍSTICAS ===== -->
+  <div id="secaoEstatisticas" class="hidden">
+    <div class="stats-page">
+
+      <!-- Métricas rápidas -->
+      <div class="stats-metrics">
+        <div class="metric-card">
+          <span class="metric-label">Total de jogos</span>
+          <span class="metric-value" id="statTotal">0</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Avaliação média</span>
+          <span class="metric-value" id="statMedia">—</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Platinados</span>
+          <span class="metric-value" id="statPlatinados">0</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Taxa de platina</span>
+          <span class="metric-value" id="statTaxaPlatina">—</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Progresso médio platina</span>
+          <span class="metric-value" id="statProgressoMedio">—</span>
+        </div>
+        <div class="metric-card">
+          <span class="metric-label">Plataformas</span>
+          <span class="metric-value" id="statPlataformas">0</span>
+        </div>
+      </div>
+
+      <!-- Gráficos — linha 1 -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <p class="chart-title">Status de jogo</p>
+          <div class="chart-wrap chart-wrap-pizza">
+            <canvas id="chartStatusJogo"></canvas>
+          </div>
+          <div id="legendaStatusJogo" class="chart-legenda"></div>
+        </div>
+        <div class="chart-card">
+          <p class="chart-title">Status de platina</p>
+          <div class="chart-wrap chart-wrap-pizza">
+            <canvas id="chartStatusPlatina"></canvas>
+          </div>
+          <div id="legendaStatusPlatina" class="chart-legenda"></div>
+        </div>
+        <div class="chart-card">
+          <p class="chart-title">Progresso geral de platina</p>
+          <div class="chart-wrap chart-wrap-pizza">
+            <canvas id="chartProgressoPlatina"></canvas>
+          </div>
+          <div id="legendaProgressoPlatina" class="chart-legenda"></div>
+        </div>
+      </div>
+
+      <!-- Gráficos — linha 2 -->
+      <div class="charts-row charts-row-full">
+        <div class="chart-card chart-card-full">
+          <p class="chart-title">Jogos por plataforma</p>
+          <div class="chart-wrap chart-wrap-barra">
+            <canvas id="chartPlataformas"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráficos — linha 3 -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <p class="chart-title">Distribuição de avaliações</p>
+          <div class="chart-wrap chart-wrap-barra-sm">
+            <canvas id="chartAvaliacoes"></canvas>
+          </div>
+        </div>
+        <div class="chart-card">
+          <p class="chart-title">DLC e manuais</p>
+          <div class="chart-wrap chart-wrap-pizza">
+            <canvas id="chartExtras"></canvas>
+          </div>
+          <div id="legendaExtras" class="chart-legenda"></div>
+        </div>
+      </div>
+
+      <!-- Mensagem sem dados -->
+      <div id="statsSemDados" class="stats-sem-dados hidden">
+        <span>📭</span>
+        <p>Nenhum jogo no catálogo ainda.</p>
+        <p>Adicione jogos para ver as estatísticas aqui.</p>
+      </div>
+
+    </div>
+  </div><!-- fim #secaoEstatisticas -->
+
+  <!-- Modal do Formulário -->
+  <div id="modalOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modalTitulo">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="modalTitulo">Adicionar Jogo</h2>
+        <button id="btnFecharModal" class="btn-icon" aria-label="Fechar">✕</button>
+      </div>
+      <form id="gameForm" novalidate>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="plataforma">Plataforma *</label>
+            <input type="text" id="plataforma" required placeholder="Ex: PS5, Xbox, PC…">
+          </div>
+          <div class="form-group">
+            <label for="jogo">Nome do Jogo *</label>
+            <input type="text" id="jogo" required placeholder="Ex: God of War">
+          </div>
+          <div class="form-group">
+            <label for="avaliacao">Avaliação</label>
+            <div class="star-input" id="starInput" role="group" aria-label="Avaliação em estrelas">
+              <span class="star" data-val="1">★</span>
+              <span class="star" data-val="2">★</span>
+              <span class="star" data-val="3">★</span>
+              <span class="star" data-val="4">★</span>
+              <span class="star" data-val="5">★</span>
+            </div>
+            <input type="hidden" id="avaliacao" value="0">
+          </div>
+          <div class="form-group">
+            <label for="statusJogo">Status de Jogo</label>
+            <select id="statusJogo">
+              <option value="jogando">Jogando</option>
+              <option value="finalizado">Já finalizado</option>
+              <option value="jogado">Jogado</option>
+              <option value="nao_comecado">Ainda não comecei</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="platinavelSimbolo">Platinável?</label>
+            <select id="platinavelSimbolo">
+              <option value="sim">Sim</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="statusPlatina">Status de Platina</label>
+            <select id="statusPlatina">
+              <option value="platinado">Já platinado</option>
+              <option value="andamento">Em andamento</option>
+              <option value="implatinavel">Implatinável</option>
+              <option value="nao_comecado">Não comecei</option>
+            </select>
+          </div>
+          <div class="form-group" id="grupoMotivo">
+            <label for="motivoImplatinavel">Motivo (implatinável)</label>
+            <input type="text" id="motivoImplatinavel" placeholder="Ex: servidores fechados…">
+          </div>
+          <div class="form-group">
+            <label for="progressoPlatina">Progressão da Platina (%)</label>
+            <input type="number" id="progressoPlatina" min="0" max="100" step="1" placeholder="0–100">
+          </div>
+          <div class="form-group">
+            <label for="possuiDLC">Possui DLC?</label>
+            <select id="possuiDLC">
+              <option value="sim">Sim</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="possuiManual">Possui Manual?</label>
+            <select id="possuiManual">
+              <option value="sim">Sim</option>
+              <option value="nao">Não</option>
+            </select>
+          </div>
+          <div class="form-group form-group-full">
+            <label for="capaURL">URL da Capa (opcional)</label>
+            <div class="capa-input-wrap">
+              <input type="url" id="capaURL" placeholder="https://…">
+              <div class="capa-preview" id="capaPreview">
+                <span class="capa-placeholder">🖼️</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" id="btnCancelarForm" class="btn-secondary">Cancelar</button>
+          <button type="submit" id="btnSubmit" class="btn-primary">Adicionar</button>
+        </div>
+        <input type="hidden" id="editIndex">
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div id="confirmOverlay" class="modal-overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal modal-sm">
+      <div class="modal-header">
+        <h2>Excluir jogo?</h2>
+      </div>
+      <p id="confirmMsg" style="margin: 0 0 1.5rem; color: var(--text-muted);">Esta ação não pode ser desfeita.</p>
+      <div class="form-actions">
+        <button id="btnCancelarExclusao" class="btn-secondary">Cancelar</button>
+        <button id="btnConfirmarExclusao" class="btn-danger">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/script.js"></script>
+</body>
+</html>
