@@ -574,7 +574,7 @@ document.getElementById("btnGrid").addEventListener("click", () => {
 // ============================================================
 //  EXPORTAR / IMPORTAR JSON
 // ============================================================
-document.getElementById("btnExportar").addEventListener("click", () => {
+function exportarJSON() {
   const blob = new Blob([JSON.stringify(jogos, null, 2)], { type: "application/json" });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement("a");
@@ -582,9 +582,9 @@ document.getElementById("btnExportar").addEventListener("click", () => {
   a.download = "catalogo-jogos.json";
   a.click();
   URL.revokeObjectURL(url);
-});
+}
 
-document.getElementById("btnImportar").addEventListener("change", e => {
+function importarJSON(e) {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
@@ -603,7 +603,12 @@ document.getElementById("btnImportar").addEventListener("change", e => {
     e.target.value = "";
   };
   reader.readAsText(file);
-});
+}
+
+document.getElementById("btnExportar").addEventListener("click", exportarJSON);
+document.getElementById("btnExportarMobile").addEventListener("click", exportarJSON);
+document.getElementById("btnImportar").addEventListener("change", importarJSON);
+document.getElementById("btnImportarMobile").addEventListener("change", importarJSON);
 
 // ============================================================
 //  ATALHOS DE TECLADO
