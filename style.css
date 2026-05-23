@@ -605,6 +605,7 @@ tfoot td {
   h1 { font-size: 16px; }
   .header-actions { gap: 6px; }
   .btn-secondary { display: none; }
+  .header-mobile-actions { display: flex; }
   .resumo-cards { gap: 6px; }
   .resumo-card { min-width: 120px; font-size: 12px; }
   .filtros-bar { gap: 8px; }
@@ -1119,3 +1120,32 @@ kbd {
   }
   .atalhos-inner { min-width: unset; }
 }
+
+/* ============================================================
+   BARRA DE AÇÕES MOBILE (exportar / importar)
+   ============================================================ */
+.header-mobile-actions {
+  display: none;
+  padding: 8px 16px;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.btn-mobile-action {
+  flex: 1;
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: center;
+  transition: background var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-mobile-action:hover { background: var(--border); }
