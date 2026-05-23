@@ -1131,6 +1131,10 @@ kbd {
   border-top: 1px solid var(--border);
 }
 
+@media (max-width: 768px) {
+  .header-mobile-actions { display: flex; }
+}
+
 .btn-mobile-action {
   flex: 1;
   background: var(--bg-3);
