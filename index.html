@@ -23,6 +23,12 @@
         <button id="btnAtalhos" class="btn-icon" aria-label="Atalhos de teclado" title="Atalhos (?)">⌨️</button>
       </div>
     </div>
+    <!-- Barra de ações mobile (exportar/importar) -->
+    <div class="header-mobile-actions">
+      <button id="btnExportarMobile" class="btn-mobile-action">⬇ Exportar JSON</button>
+      <label class="btn-mobile-action" for="btnImportarMobile" style="cursor:pointer">⬆ Importar JSON</label>
+      <input type="file" id="btnImportarMobile" accept=".json" style="display:none">
+    </div>
   </header>
 
   <!-- Painel de atalhos -->
@@ -67,28 +73,28 @@
     <div class="resumo-group">
       <p class="resumo-group-title">Status de Jogo</p>
       <div class="resumo-cards">
-        <div class="resumo-card jogando">🎮 Jogando<span id="cardJogando">0</span></div>
-        <div class="resumo-card finalizado">✅ Finalizados<span id="cardFinalizados">0</span></div>
-        <div class="resumo-card jogado">🕹️ Jogados<span id="cardJogados">0</span></div>
-        <div class="resumo-card nao-comecado">⏳ Não comecei<span id="cardNaoComecados">0</span></div>
+        <div class="resumo-card jogando">Jogando<span id="cardJogando">0</span></div>
+        <div class="resumo-card finalizado">Finalizados<span id="cardFinalizados">0</span></div>
+        <div class="resumo-card jogado">Jogados<span id="cardJogados">0</span></div>
+        <div class="resumo-card nao-comecado">Não comecei<span id="cardNaoComecados">0</span></div>
       </div>
     </div>
     <div class="resumo-group">
       <p class="resumo-group-title">Status de Platina</p>
       <div class="resumo-cards">
-        <div class="resumo-card platinado">🏆 Platinados<span id="cardPlatinados">0</span></div>
-        <div class="resumo-card andamento">⚙️ Em andamento<span id="cardAndamento">0</span></div>
-        <div class="resumo-card implatinavel">❌ Implatináveis<span id="cardImplatinaveis">0</span></div>
-        <div class="resumo-card platina-nao-comecada">⏳ Não comecei<span id="cardPlatinaNaoComecada">0</span></div>
+        <div class="resumo-card platinado">Platinados<span id="cardPlatinados">0</span></div>
+        <div class="resumo-card andamento">Em andamento<span id="cardAndamento">0</span></div>
+        <div class="resumo-card implatinavel">Implatináveis<span id="cardImplatinaveis">0</span></div>
+        <div class="resumo-card platina-nao-comecada">Não comecei<span id="cardPlatinaNaoComecada">0</span></div>
       </div>
     </div>
     <div class="resumo-group">
       <p class="resumo-group-title">Extras</p>
       <div class="resumo-cards">
-        <div class="resumo-card platinavel">✅ Platinável<span id="cardPlatinavel">0</span></div>
-        <div class="resumo-card nao-platinavel">❌ Não Platinável<span id="cardNaoPlatinavel">0</span></div>
-        <div class="resumo-card dlc-sim">📦 Com DLC<span id="cardComDLC">0</span></div>
-        <div class="resumo-card manual-sim-card">📖 Com Manual<span id="cardComManual">0</span></div>
+        <div class="resumo-card platinavel">Platinável<span id="cardPlatinavel">0</span></div>
+        <div class="resumo-card nao-platinavel">Não Platinável<span id="cardNaoPlatinavel">0</span></div>
+        <div class="resumo-card dlc-sim">Com DLC<span id="cardComDLC">0</span></div>
+        <div class="resumo-card manual-sim-card">Com Manual<span id="cardComManual">0</span></div>
       </div>
     </div>
   </section>
