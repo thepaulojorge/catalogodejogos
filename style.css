@@ -1153,3 +1153,261 @@ kbd {
   justify-content: center;
 }
 .btn-mobile-action:hover { background: var(--border); }
+
+/* ============================================================
+   TOP 5
+   ============================================================ */
+.top5-section {
+  max-width: 1400px;
+  margin: 0 auto 16px;
+  padding: 0 24px;
+}
+
+.top5-inner {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+}
+
+.top5-lista {
+  display: flex;
+  gap: 10px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+
+.top5-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-3);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  flex: 1;
+  min-width: 180px;
+  transition: transform var(--transition), box-shadow var(--transition);
+  cursor: default;
+}
+.top5-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+
+.top5-posicao {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-faint);
+  min-width: 28px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.top5-posicao.ouro   { color: #f0c040; }
+.top5-posicao.prata  { color: #aab4c4; }
+.top5-posicao.bronze { color: #cd7f32; }
+
+.top5-capa {
+  width: 40px;
+  height: 54px;
+  border-radius: 4px;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--bg);
+}
+.top5-capa-placeholder {
+  width: 40px;
+  height: 54px;
+  border-radius: 4px;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+.top5-info { display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.top5-nome {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.top5-plataforma { font-size: 11px; color: var(--text-muted); }
+.top5-nota {
+  font-size: 14px;
+  color: var(--gold);
+  letter-spacing: 1px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   HISTÓRICO DE ALTERAÇÕES
+   ============================================================ */
+.historico-section {
+  max-width: 1400px;
+  margin: 0 auto 16px;
+  padding: 0 24px;
+}
+
+.historico-inner {
+  background: var(--bg-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+}
+
+.historico-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.btn-historico-limpar {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--text-muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.btn-historico-limpar:hover { background: var(--bg-3); color: var(--red); border-color: var(--red); }
+
+.historico-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.historico-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--text-muted);
+  transition: background var(--transition);
+}
+.historico-item:hover { background: var(--bg-3); }
+
+.historico-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+.historico-icon.add    { color: var(--green); }
+.historico-icon.edit   { color: var(--yellow); }
+.historico-icon.delete { color: var(--red); }
+
+.historico-texto { flex: 1; }
+.historico-texto strong { color: var(--text); font-weight: 500; }
+.historico-data {
+  font-size: 10px;
+  color: var(--text-faint);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.historico-vazio {
+  text-align: center;
+  padding: 16px;
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+@media (max-width: 768px) {
+  .top5-lista { gap: 8px; }
+  .top5-card { min-width: 150px; }
+}
+
+/* ============================================================
+   SLIDER DE NOTA 0–100
+   ============================================================ */
+.nota-slider-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nota-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--bg-3);
+  border: 1px solid var(--border-strong);
+  outline: none;
+  cursor: pointer;
+}
+.nota-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-2);
+  box-shadow: 0 0 0 1px var(--accent);
+  cursor: pointer;
+  transition: transform var(--transition);
+}
+.nota-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.nota-slider::-moz-range-thumb {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--bg-2);
+  cursor: pointer;
+}
+
+.nota-marcadores {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  color: var(--text-faint);
+  padding: 0 2px;
+}
+
+.avaliacao-label {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  margin-left: 6px;
+}
+.avaliacao-label.nota-ruim  { color: var(--red); }
+.avaliacao-label.nota-ok    { color: var(--orange); }
+.avaliacao-label.nota-boa   { color: var(--yellow); }
+.avaliacao-label.nota-otima { color: var(--green); }
+.avaliacao-label.nota-zero  { color: var(--text-faint); }
+
+/* Badge de nota numérica na tabela e grid */
+.nota-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+  min-width: 44px;
+}
+.nota-badge.ruim  { background: rgba(255,68,102,0.15); color: var(--red); }
+.nota-badge.ok    { background: rgba(255,136,68,0.15); color: var(--orange); }
+.nota-badge.boa   { background: rgba(240,192,64,0.15); color: var(--yellow); }
+.nota-badge.otima { background: rgba(0,212,170,0.15);  color: var(--green); }
+.nota-badge.zero  { color: var(--text-faint); background: transparent; font-family: 'Inter', sans-serif; font-size: 13px; }
+
+/* Card de média — adaptar para número */
+.media-numero { font-size: 28px; }
