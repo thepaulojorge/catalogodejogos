@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css">
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -19,15 +21,17 @@
         <button id="btnExportar" class="btn-secondary">⬇ Exportar JSON</button>
         <label class="btn-secondary" for="btnImportar" style="cursor:pointer">⬆ Importar JSON</label>
         <input type="file" id="btnImportar" accept=".json" style="display:none">
+        <button id="btnExportarPDF" class="btn-secondary">📄 Exportar PDF</button>
         <button id="btnAbrirForm" class="btn-primary">+ Adicionar Jogo</button>
         <button id="btnAtalhos" class="btn-icon" aria-label="Atalhos de teclado" title="Atalhos (?)">⌨️</button>
       </div>
     </div>
     <!-- Barra de ações mobile (exportar/importar) -->
     <div class="header-mobile-actions">
-      <button id="btnExportarMobile" class="btn-mobile-action">⬇ Exportar JSON</button>
-      <label class="btn-mobile-action" for="btnImportarMobile" style="cursor:pointer">⬆ Importar JSON</label>
+      <button id="btnExportarMobile" class="btn-mobile-action">⬇ JSON</button>
+      <label class="btn-mobile-action" for="btnImportarMobile" style="cursor:pointer">⬆ JSON</label>
       <input type="file" id="btnImportarMobile" accept=".json" style="display:none">
+      <button id="btnExportarPDFMobile" class="btn-mobile-action">📄 PDF</button>
     </div>
   </header>
 
@@ -109,6 +113,25 @@
     <div class="media-plataformas" id="mediaPlataformas"></div>
   </section>
 
+  <!-- Top 5 mais bem avaliados -->
+  <section class="top5-section hidden" id="top5Section" aria-label="Top 5 jogos">
+    <div class="top5-inner">
+      <p class="resumo-group-title">Top 5 mais bem avaliados</p>
+      <div class="top5-lista" id="top5Lista"></div>
+    </div>
+  </section>
+
+  <!-- Histórico de alterações -->
+  <section class="historico-section hidden" id="historicoSection" aria-label="Histórico">
+    <div class="historico-inner">
+      <div class="historico-header">
+        <p class="resumo-group-title">Histórico de alterações</p>
+        <button id="btnLimparHistorico" class="btn-historico-limpar" title="Limpar histórico">Limpar</button>
+      </div>
+      <div class="historico-lista" id="historicoLista"></div>
+    </div>
+  </section>
+
   <!-- Filtros -->
   <div class="filtros-bar">
     <div class="search-container">
@@ -132,6 +155,7 @@
       <option value="">Todas as plataformas</option>
     </select>
     <div class="view-toggle">
+      <button id="btnAlfabetica" class="btn-view" title="Ordenar A→Z">A↓Z</button>
       <button id="btnTabela" class="btn-view active" title="Visualização em tabela">☰</button>
       <button id="btnGrid" class="btn-view" title="Visualização em grade">⊞</button>
     </div>
@@ -281,15 +305,8 @@
             <input type="text" id="jogo" required placeholder="Ex: God of War">
           </div>
           <div class="form-group">
-            <label for="avaliacao">Avaliação</label>
-            <div class="star-input" id="starInput" role="group" aria-label="Avaliação em estrelas">
-              <span class="star" data-val="1">★</span>
-              <span class="star" data-val="2">★</span>
-              <span class="star" data-val="3">★</span>
-              <span class="star" data-val="4">★</span>
-              <span class="star" data-val="5">★</span>
-            </div>
-            <input type="hidden" id="avaliacao" value="0">
+            <label for="avaliacao">Avaliação <span id="avaliacaoLabel" class="avaliacao-label">—</span></label>
+            <input type="number" id="avaliacao" min="0" max="100" step="1" value="" placeholder="0 – 100">
           </div>
           <div class="form-group">
             <label for="statusJogo">Status de Jogo</label>
