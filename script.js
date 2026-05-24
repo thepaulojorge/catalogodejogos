@@ -2,12 +2,14 @@
 //  ESTADO
 // ============================================================
 let jogos = JSON.parse(localStorage.getItem("jogos")) || [];
+let historico = JSON.parse(localStorage.getItem("historico")) || [];
 let filtroTexto = "";
 let filtroStatus = "";
 let filtroPlatina = "";
 let filtroPlatforma = "";
 let sortCol = "";
 let sortDir = "asc";
+let ordemAlfabetica = false;
 let modoGrid = false;
 let indexParaExcluir = null;
 let avaliacaoAtual = 0;
@@ -24,8 +26,6 @@ const modalOverlay  = document.getElementById("modalOverlay");
 const confirmOverlay= document.getElementById("confirmOverlay");
 const modalTitulo   = document.getElementById("modalTitulo");
 const btnSubmit     = document.getElementById("btnSubmit");
-const starInput     = document.getElementById("starInput");
-const stars         = starInput.querySelectorAll(".star");
 const statusPlatinaSelect = document.getElementById("statusPlatina");
 const grupoMotivo   = document.getElementById("grupoMotivo");
 
@@ -34,6 +34,7 @@ const grupoMotivo   = document.getElementById("grupoMotivo");
 // ============================================================
 function salvar() {
   localStorage.setItem("jogos", JSON.stringify(jogos));
+  localStorage.setItem("historico", JSON.stringify(historico));
 }
 
 // ============================================================
@@ -73,7 +74,7 @@ function abrirModal(modo = "add", index = null) {
     document.getElementById("possuiDLC").value         = j.possuiDLC;
     document.getElementById("possuiManual").value      = j.possuiManual;
     document.getElementById("capaURL").value           = j.capaURL || "";
-    setAvaliacao(parseFloat(j.avaliacao) || 0);
+    setAvaliacao(parseInt(j.avaliacao) || 0);
     atualizarPreviewCapa(j.capaURL || "");
   } else {
     form.reset();
@@ -121,19 +122,36 @@ function toggleMotivo() {
 statusPlatinaSelect.addEventListener("change", toggleMotivo);
 
 // ============================================================
-//  STAR RATING
+//  SLIDER DE NOTA 0–100
 // ============================================================
-function setAvaliacao(val) {
-  avaliacaoAtual = val;
-  document.getElementById("avaliacao").value = val;
-  stars.forEach(s => s.classList.toggle("active", parseFloat(s.dataset.val) <= val));
+function classeNota(v) {
+  if (v === 0)    return "zero";
+  if (v < 40)     return "ruim";
+  if (v < 60)     return "ok";
+  if (v < 80)     return "boa";
+  return "otima";
 }
 
-stars.forEach(s => {
-  s.addEventListener("click",       () => setAvaliacao(parseFloat(s.dataset.val)));
-  s.addEventListener("mouseenter",  () => stars.forEach(x => x.classList.toggle("active", parseFloat(x.dataset.val) <= parseFloat(s.dataset.val))));
-  s.addEventListener("mouseleave",  () => setAvaliacao(avaliacaoAtual));
-});
+function setAvaliacao(val) {
+  avaliacaoAtual = parseInt(val) || 0;
+  const input = document.getElementById("avaliacao");
+  const label = document.getElementById("avaliacaoLabel");
+  if (input) input.value = avaliacaoAtual > 0 ? avaliacaoAtual : "";
+  if (label) {
+    label.textContent = avaliacaoAtual > 0 ? avaliacaoAtual : "—";
+    label.className = "avaliacao-label nota-" + classeNota(avaliacaoAtual);
+  }
+}
+
+const notaInput = document.getElementById("avaliacao");
+if (notaInput) {
+  notaInput.addEventListener("input", () => {
+    let v = parseInt(notaInput.value) || 0;
+    if (v > 100) { v = 100; notaInput.value = 100; }
+    if (v < 0)   { v = 0;   notaInput.value = "";  }
+    setAvaliacao(v);
+  });
+}
 
 // ============================================================
 //  SUBMIT DO FORMULÁRIO
@@ -143,7 +161,7 @@ form.addEventListener("submit", function(e) {
 
   const plataforma         = document.getElementById("plataforma").value.trim();
   const nome               = document.getElementById("jogo").value.trim();
-  const avaliacao          = parseFloat(document.getElementById("avaliacao").value) || 0;
+  const avaliacao          = parseInt(document.getElementById("avaliacao").value) || 0;
   const statusJogo         = document.getElementById("statusJogo").value;
   const platinavelSimbolo  = document.getElementById("platinavelSimbolo").value;
   const statusPlatina      = document.getElementById("statusPlatina").value;
@@ -163,8 +181,10 @@ form.addEventListener("submit", function(e) {
 
   const editIndex = document.getElementById("editIndex").value;
   if (editIndex !== "") {
+    registrarHistorico("edit", registro.nome);
     jogos[parseInt(editIndex)] = registro;
   } else {
+    registrarHistorico("add", registro.nome);
     jogos.push(registro);
   }
 
@@ -191,6 +211,7 @@ document.getElementById("btnCancelarExclusao").addEventListener("click", () => {
 
 document.getElementById("btnConfirmarExclusao").addEventListener("click", () => {
   if (indexParaExcluir !== null) {
+    registrarHistorico("delete", jogos[indexParaExcluir].nome);
     jogos.splice(indexParaExcluir, 1);
     salvar();
     renderizar();
@@ -210,14 +231,11 @@ confirmOverlay.addEventListener("click", e => {
 // ============================================================
 //  HELPERS DE RENDERIZAÇÃO
 // ============================================================
-function renderStars(val) {
-  const v = parseFloat(val) || 0;
-  const full = Math.floor(v);
-  let html = '<span class="stars">';
-  for (let i = 1; i <= 5; i++) {
-    html += i <= full ? "★" : '<span class="stars-empty">★</span>';
-  }
-  return html + '</span>';
+function renderNota(val) {
+  const v = parseInt(val) || 0;
+  if (v === 0) return `<span class="nota-badge zero">—</span>`;
+  const cls = classeNota(v);
+  return `<span class="nota-badge ${cls}">${v}</span>`;
 }
 
 function renderBadge(tipo, texto) {
@@ -266,7 +284,9 @@ function jogosVisiveis() {
       return true;
     });
 
-  if (sortCol) {
+  if (ordemAlfabetica) {
+    lista.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
+  } else if (sortCol) {
     lista.sort((a, b) => {
       let va = a[sortCol], vb = b[sortCol];
       if (sortCol === "avaliacao" || sortCol === "progressoPlatina") {
@@ -296,7 +316,7 @@ function renderizarTabela(lista) {
       <td>${i + 1}</td>
       <td>${j.plataforma}</td>
       <td style="font-weight:500">${j.nome}</td>
-      <td>${renderStars(j.avaliacao)}</td>
+      <td>${renderNota(j.avaliacao)}</td>
       <td>${renderBadge(j.statusJogo, LABELS_STATUS[j.statusJogo] || j.statusJogo)}</td>
       <td>${j.platinavelSimbolo === "sim" ? '<span class="tag-sim">✅ Sim</span>' : '<span class="tag-nao">❌ Não</span>'}</td>
       <td>${renderBadge(j.statusPlatina, LABELS_PLATINA[j.statusPlatina] || j.statusPlatina)}</td>
@@ -328,8 +348,8 @@ function renderizarGrid(lista) {
     const temCapa = !!j.capaURL;
     card.className = "game-card" + (temCapa ? " tem-capa" : "");
 
-    const avaliacaoHTML = parseFloat(j.avaliacao) > 0
-      ? "★".repeat(Math.floor(parseFloat(j.avaliacao)))
+    const avaliacaoHTML = parseInt(j.avaliacao) > 0
+      ? `<span class="nota-badge ${classeNota(parseInt(j.avaliacao))}" style="font-size:11px;padding:2px 7px">${j.avaliacao}</span>`
       : "";
 
     const capaHTML = temCapa
@@ -357,7 +377,7 @@ function renderizarGrid(lista) {
         </div>
         ${j.progressoPlatina ? renderProgresso(j) : ""}
         <div class="game-card-footer">
-          <div>${!temCapa ? renderStars(j.avaliacao) : ""}</div>
+          <div>${!temCapa ? renderNota(j.avaliacao) : ""}</div>
           <div class="game-card-actions">
             <button class="btn-icon" onclick="abrirModal('edit', ${j._realIndex})" title="Editar">✏️</button>
             <button class="btn-icon" onclick="pedirExclusao(${j._realIndex})" title="Excluir" style="color:var(--red)">🗑️</button>
@@ -382,6 +402,8 @@ function renderizar() {
   atualizarContadores();
   atualizarStatsBar();
   atualizarMediaAvaliacoes();
+  atualizarTop5();
+  atualizarHistorico();
 }
 
 // ============================================================
@@ -419,22 +441,15 @@ const CORES_PLATAFORMA = [
   "#ff8844","#ff4466","#22ccee","#84cc16"
 ];
 
-function starsHTML(media, classVazio = "star-vazio") {
-  const cheia  = Math.floor(media);
-  const vazia  = 5 - cheia;
-  return "★".repeat(cheia) +
-    `<span class="${classVazio}">` + "★".repeat(vazia) + "</span>";
-}
-
 function mediaDeJogos(lista) {
-  const validos = lista.filter(j => parseFloat(j.avaliacao) > 0);
+  const validos = lista.filter(j => parseInt(j.avaliacao) > 0);
   if (!validos.length) return null;
-  return validos.reduce((acc, j) => acc + parseFloat(j.avaliacao), 0) / validos.length;
+  return Math.round(validos.reduce((acc, j) => acc + parseInt(j.avaliacao), 0) / validos.length);
 }
 
 function atualizarMediaAvaliacoes() {
   const section = document.getElementById("mediaSection");
-  const avaliadosTotal = jogos.filter(j => parseFloat(j.avaliacao) > 0);
+  const avaliadosTotal = jogos.filter(j => parseInt(j.avaliacao) > 0);
 
   if (avaliadosTotal.length === 0) {
     section.classList.add("hidden");
@@ -442,41 +457,40 @@ function atualizarMediaAvaliacoes() {
   }
   section.classList.remove("hidden");
 
-  // Média geral
   const mediaGeral = mediaDeJogos(jogos);
-  document.getElementById("mediaStarsGeral").innerHTML = starsHTML(mediaGeral);
-  document.getElementById("mediaNumeroGeral").textContent = mediaGeral.toFixed(1);
+  const clsGeral   = classeNota(mediaGeral);
+  document.getElementById("mediaStarsGeral").innerHTML = "";
+  document.getElementById("mediaNumeroGeral").textContent = mediaGeral;
+  document.getElementById("mediaNumeroGeral").className = `media-numero nota-badge ${clsGeral}`;
 
-  // Por plataforma
   const plataformas = [...new Set(jogos.map(j => j.plataforma).filter(Boolean))].sort();
   const container = document.getElementById("mediaPlataformas");
   container.innerHTML = "";
 
   plataformas.forEach((plat, i) => {
-    const jogosDaPlat  = jogos.filter(j => j.plataforma === plat);
-    const mediaPlat    = mediaDeJogos(jogosDaPlat);
-    const totalPlat    = jogosDaPlat.length;
-    const avaliadosPlat= jogosDaPlat.filter(j => parseFloat(j.avaliacao) > 0).length;
-    const cor          = CORES_PLATAFORMA[i % CORES_PLATAFORMA.length];
+    const jogosDaPlat   = jogos.filter(j => j.plataforma === plat);
+    const mediaPlat     = mediaDeJogos(jogosDaPlat);
+    const totalPlat     = jogosDaPlat.length;
+    const avaliadosPlat = jogosDaPlat.filter(j => parseInt(j.avaliacao) > 0).length;
+    const cor           = CORES_PLATAFORMA[i % CORES_PLATAFORMA.length];
 
     const card = document.createElement("div");
     card.className = "media-plat-card";
     card.style.setProperty("--plat-cor", cor);
 
     if (mediaPlat !== null) {
+      const cls = classeNota(mediaPlat);
       card.innerHTML = `
         <span class="media-plat-nome" title="${plat}">${plat}</span>
-        <div class="media-plat-stars">${starsHTML(mediaPlat)}</div>
         <div class="media-plat-footer">
-          <span class="media-plat-numero">${mediaPlat.toFixed(1)}</span>
+          <span class="nota-badge ${cls}" style="font-size:18px;padding:4px 12px">${mediaPlat}</span>
           <span class="media-plat-count">${avaliadosPlat}/${totalPlat} avaliado${avaliadosPlat !== 1 ? "s" : ""}</span>
         </div>`;
     } else {
       card.innerHTML = `
         <span class="media-plat-nome" title="${plat}">${plat}</span>
-        <div class="media-plat-stars"><span class="star-vazio">★★★★★</span></div>
         <div class="media-plat-footer">
-          <span class="media-plat-numero" style="color:var(--text-faint);font-size:12px">sem nota</span>
+          <span class="nota-badge zero">—</span>
           <span class="media-plat-count">${totalPlat} jogo${totalPlat !== 1 ? "s" : ""}</span>
         </div>`;
     }
@@ -485,8 +499,108 @@ function atualizarMediaAvaliacoes() {
 }
 
 // ============================================================
-//  FILTRO DE PLATAFORMA (select)
+//  TOP 5 MAIS BEM AVALIADOS
 // ============================================================
+function atualizarTop5() {
+  const section = document.getElementById("top5Section");
+  const avaliados = jogos.filter(j => parseInt(j.avaliacao) > 0);
+
+  if (avaliados.length === 0) {
+    section.classList.add("hidden");
+    return;
+  }
+  section.classList.remove("hidden");
+
+  const top5 = [...avaliados]
+    .sort((a, b) => parseInt(b.avaliacao) - parseInt(a.avaliacao))
+    .slice(0, 5);
+
+  const medalhas = ["ouro", "prata", "bronze"];
+  const numeros  = ["1", "2", "3", "4", "5"];
+
+  document.getElementById("top5Lista").innerHTML = top5.map((j, i) => {
+    const posClasse = medalhas[i] || "";
+    const capaHTML = j.capaURL
+      ? `<img class="top5-capa" src="${j.capaURL}" alt="" onerror="this.outerHTML='<div class=top5-capa-placeholder>🎮</div>'">`
+      : `<div class="top5-capa-placeholder">🎮</div>`;
+    const nota = parseInt(j.avaliacao) || 0;
+    const cls  = classeNota(nota);
+
+    return `
+      <div class="top5-card">
+        <span class="top5-posicao ${posClasse}">${numeros[i]}</span>
+        ${capaHTML}
+        <div class="top5-info">
+          <span class="top5-nome" title="${j.nome}">${j.nome}</span>
+          <span class="top5-plataforma">${j.plataforma}</span>
+        </div>
+        <span class="nota-badge ${cls}" style="margin-left:auto;flex-shrink:0">${nota}</span>
+      </div>`;
+  }).join("");
+}
+
+// ============================================================
+//  HISTÓRICO DE ALTERAÇÕES
+// ============================================================
+const MAX_HISTORICO = 50;
+
+function registrarHistorico(tipo, nome) {
+  const agora = new Date();
+  const entrada = {
+    tipo,
+    nome,
+    data: agora.toISOString()
+  };
+  historico.unshift(entrada);
+  if (historico.length > MAX_HISTORICO) historico.pop();
+}
+
+function formatarDataHistorico(isoString) {
+  const d = new Date(isoString);
+  const agora = new Date();
+  const diffMs = agora - d;
+  const diffMin = Math.floor(diffMs / 60000);
+  const diffH   = Math.floor(diffMs / 3600000);
+  const diffD   = Math.floor(diffMs / 86400000);
+
+  if (diffMin < 1)  return "agora";
+  if (diffMin < 60) return `${diffMin}min atrás`;
+  if (diffH < 24)   return `${diffH}h atrás`;
+  if (diffD < 7)    return `${diffD}d atrás`;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "2-digit" });
+}
+
+function atualizarHistorico() {
+  const section = document.getElementById("historicoSection");
+  const lista   = document.getElementById("historicoLista");
+
+  if (historico.length === 0) {
+    section.classList.add("hidden");
+    return;
+  }
+  section.classList.remove("hidden");
+
+  const ICONES = { add: "➕", edit: "✏️", delete: "🗑️" };
+  const TEXTOS = {
+    add:    nome => `Adicionado <strong>${nome}</strong>`,
+    edit:   nome => `Editado <strong>${nome}</strong>`,
+    delete: nome => `Removido <strong>${nome}</strong>`,
+  };
+
+  lista.innerHTML = historico.map(h => `
+    <div class="historico-item">
+      <span class="historico-icon ${h.tipo}">${ICONES[h.tipo]}</span>
+      <span class="historico-texto">${TEXTOS[h.tipo](h.nome)}</span>
+      <span class="historico-data">${formatarDataHistorico(h.data)}</span>
+    </div>
+  `).join("");
+}
+
+document.getElementById("btnLimparHistorico").addEventListener("click", () => {
+  historico = [];
+  salvar();
+  atualizarHistorico();
+});
 function atualizarFiltroPlatforma() {
   const sel = document.getElementById("filtroPlatforma");
   const atual = sel.value;
@@ -572,8 +686,116 @@ document.getElementById("btnGrid").addEventListener("click", () => {
 });
 
 // ============================================================
-//  EXPORTAR / IMPORTAR JSON
+//  ORDENAÇÃO ALFABÉTICA
 // ============================================================
+document.getElementById("btnAlfabetica").addEventListener("click", () => {
+  ordemAlfabetica = !ordemAlfabetica;
+  const btn = document.getElementById("btnAlfabetica");
+  btn.classList.toggle("active", ordemAlfabetica);
+  btn.title = ordemAlfabetica ? "Ordenação alfabética ativa (clique para desativar)" : "Ordenar A→Z";
+  // Desativa ordenação por coluna ao ativar alfabética
+  if (ordemAlfabetica) {
+    sortCol = "";
+    sortDir = "asc";
+    document.querySelectorAll("th.sortable").forEach(t => t.classList.remove("asc","desc"));
+  }
+  renderizar();
+});
+
+// ============================================================
+//  EXPORTAR PDF
+// ============================================================
+function exportarPDF() {
+  if (jogos.length === 0) {
+    alert("Nenhum jogo para exportar.");
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+
+  // Cabeçalho
+  const agora = new Date().toLocaleDateString("pt-BR");
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(16);
+  doc.text("Catalogo de Jogos", 14, 16);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(120);
+  doc.text(`Gerado em ${agora}  •  ${jogos.length} jogo(s)`, 14, 23);
+  doc.setTextColor(0);
+
+  // Resumo rápido
+  const platinados   = jogos.filter(j => j.statusPlatina === "platinado").length;
+  const finalizados  = jogos.filter(j => j.statusJogo    === "finalizado").length;
+  const avaliacoesPDF = jogos.filter(j => parseInt(j.avaliacao) > 0).map(j => parseInt(j.avaliacao));
+  const mediaPDF = avaliacoesPDF.length
+    ? Math.round(avaliacoesPDF.reduce((a,b)=>a+b,0) / avaliacoesPDF.length)
+    : "—";
+  doc.text(`Finalizados: ${finalizados}   Platinados: ${platinados}   Avaliação média: ${mediaPDF}`, 14, 29);
+  doc.setTextColor(0);
+
+  // Lista visível (respeita filtros e ordenação atual)
+  const lista = jogosVisiveis();
+
+  const STATUS_JOGO = {
+    jogando: "Jogando", finalizado: "Finalizado",
+    jogado: "Jogado", nao_comecado: "Nao comecei"
+  };
+  const STATUS_PLATINA = {
+    platinado: "Platinado", andamento: "Andamento",
+    implatinavel: "Implatinavel", nao_comecado: "Nao comecei"
+  };
+
+  const linhas = lista.map((j, i) => [
+    i + 1,
+    j.plataforma,
+    j.nome,
+    j.avaliacao > 0 ? `${j.avaliacao}` : "—",
+    STATUS_JOGO[j.statusJogo] || j.statusJogo,
+    STATUS_PLATINA[j.statusPlatina] || j.statusPlatina,
+    j.progressoPlatina ? `${j.progressoPlatina}%` : "—",
+    j.possuiDLC    === "sim" ? "Sim" : "Nao",
+    j.possuiManual === "sim" ? "Sim" : "Nao",
+  ]);
+
+  doc.autoTable({
+    startY: 34,
+    head: [["#", "Plataforma", "Jogo", "Nota", "Status Jogo", "Platina", "Progresso", "DLC", "Manual"]],
+    body: linhas,
+    styles: { font: "helvetica", fontSize: 8, cellPadding: 2.5 },
+    headStyles: { fillColor: [80, 50, 200], textColor: 255, fontStyle: "bold", fontSize: 8 },
+    alternateRowStyles: { fillColor: [245, 245, 250] },
+    columnStyles: {
+      0: { cellWidth: 8,  halign: "center" },
+      1: { cellWidth: 28 },
+      2: { cellWidth: 70 },
+      3: { cellWidth: 14, halign: "center" },
+      4: { cellWidth: 26 },
+      5: { cellWidth: 26 },
+      6: { cellWidth: 20, halign: "center" },
+      7: { cellWidth: 12, halign: "center" },
+      8: { cellWidth: 14, halign: "center" },
+    },
+    didDrawPage: (data) => {
+      // Rodapé com número de página
+      const pags = doc.internal.getNumberOfPages();
+      doc.setFontSize(7);
+      doc.setTextColor(150);
+      doc.text(
+        `Pagina ${data.pageNumber} de ${pags}`,
+        doc.internal.pageSize.getWidth() / 2, 
+        doc.internal.pageSize.getHeight() - 6,
+        { align: "center" }
+      );
+    }
+  });
+
+  doc.save("catalogo-jogos.pdf");
+}
+
+document.getElementById("btnExportarPDF").addEventListener("click", exportarPDF);
+document.getElementById("btnExportarPDFMobile").addEventListener("click", exportarPDF);
 function exportarJSON() {
   const blob = new Blob([JSON.stringify(jogos, null, 2)], { type: "application/json" });
   const url  = URL.createObjectURL(blob);
@@ -838,10 +1060,10 @@ function renderizarEstatisticas() {
   semDados.classList.toggle("hidden", temDados);
 
   // Métricas rápidas
-  const avaliacoesValidas = jogos.filter(j => parseFloat(j.avaliacao) > 0).map(j => parseFloat(j.avaliacao));
+  const avaliacoesValidas = jogos.filter(j => parseInt(j.avaliacao) > 0).map(j => parseInt(j.avaliacao));
   const media = avaliacoesValidas.length
-    ? (avaliacoesValidas.reduce((a,b)=>a+b,0) / avaliacoesValidas.length).toFixed(1)
-    : "—";
+    ? Math.round(avaliacoesValidas.reduce((a,b)=>a+b,0) / avaliacoesValidas.length)
+    : null;
   const platinados = jogos.filter(j => j.statusPlatina === "platinado").length;
   const platinaveis = jogos.filter(j => j.platinavelSimbolo === "sim").length;
   const taxaPlatina = platinaveis > 0 ? Math.round(platinados / platinaveis * 100) + "%" : "—";
@@ -854,7 +1076,7 @@ function renderizarEstatisticas() {
   const plataformasUnicas = [...new Set(jogos.map(j => j.plataforma).filter(Boolean))];
 
   document.getElementById("statTotal").textContent        = jogos.length;
-  document.getElementById("statMedia").textContent        = media ? `${media}★` : "—";
+  document.getElementById("statMedia").textContent = media !== null ? media : "—";
   document.getElementById("statPlatinados").textContent   = platinados;
   document.getElementById("statTaxaPlatina").textContent  = taxaPlatina;
   document.getElementById("statProgressoMedio").textContent = progressoMedio;
@@ -970,15 +1192,15 @@ function renderizarEstatisticas() {
 
   // ── Gráfico 5: Distribuição de avaliações (barra) ──
   destruirGrafico("chartAvaliacoes");
-  const distAval = { "★ 1": 0, "★ 2": 0, "★ 3": 0, "★ 4": 0, "★ 5": 0, "Sem nota": 0 };
+  const distAval = { "0–39": 0, "40–59": 0, "60–79": 0, "80–89": 0, "90–100": 0, "Sem nota": 0 };
   jogos.forEach(j => {
-    const v = parseFloat(j.avaliacao) || 0;
-    if (v === 0)      distAval["Sem nota"]++;
-    else if (v <= 1)  distAval["★ 1"]++;
-    else if (v <= 2)  distAval["★ 2"]++;
-    else if (v <= 3)  distAval["★ 3"]++;
-    else if (v <= 4)  distAval["★ 4"]++;
-    else              distAval["★ 5"]++;
+    const v = parseInt(j.avaliacao) || 0;
+    if (v === 0)       distAval["Sem nota"]++;
+    else if (v < 40)   distAval["0–39"]++;
+    else if (v < 60)   distAval["40–59"]++;
+    else if (v < 80)   distAval["60–79"]++;
+    else if (v < 90)   distAval["80–89"]++;
+    else               distAval["90–100"]++;
   });
   const avalLabels = Object.keys(distAval);
   const avalVals   = Object.values(distAval);
